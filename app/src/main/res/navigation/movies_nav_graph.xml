@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/movies_nav_graph"
+    app:startDestination="@id/trendingMoviesFragment">
+
+    <fragment
+        android:id="@+id/trendingMoviesFragment"
+        android:name="com.example.mvvmmovieapp.ui.fragments.TrendingMoviesFragment"
+        android:label="Trending movies">
+        <action
+            android:id="@+id/action_trendingMoviesFragment_to_singleMovieFragment"
+            app:destination="@id/singleMovieFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/searchMoviesFragment"
+        android:name="com.example.mvvmmovieapp.ui.fragments.SearchMoviesFragment"
+        android:label="Search movies" >
+        <action
+            android:id="@+id/action_searchMoviesFragment_to_singleMovieFragment"
+            app:destination="@id/singleMovieFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/savedMoviesFragment"
+        android:name="com.example.mvvmmovieapp.ui.fragments.SavedMoviesFragment"
+        android:label="Watchlist" >
+        <action
+            android:id="@+id/action_savedMoviesFragment_to_singleMovieFragment"
+            app:destination="@id/singleMovieFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/singleMovieFragment"
+        android:name="com.example.mvvmmovieapp.ui.fragments.SingleMovieFragment"
+        android:label="SingleMovieFragment" >
+        <argument
+            android:name="movie"
+            app:argType="com.example.mvvmmovieapp.apidata.trending.MovieItem" />
+    </fragment>
+</navigation>

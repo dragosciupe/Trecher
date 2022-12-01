@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/trendingMoviesFragment"
+        android:title="Trending"
+        android:icon="@drawable/ic_trending_movies" />
+
+    <item
+        android:id="@+id/savedMoviesFragment"
+        android:title="Watchlist"
+        android:icon="@drawable/ic_saved_movies" />
+
+    <item
+        android:id="@+id/searchMoviesFragment"
+        android:title="Search"
+        android:icon="@drawable/ic_search_movies" />
+</menu>

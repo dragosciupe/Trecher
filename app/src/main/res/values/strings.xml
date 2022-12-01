@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Mvvm Movie App</string>
+    <string name="release_date">Release date: %s</string>
+    <string name="original_language">Original language: %s</string>
+    <string name="primary_cast">Cast: %s, %s, %s</string>
+    <string name="vote_average">%.1f / 10</string>
+    <string name="movie_runtime">%dh %dm</string>
+</resources>
