@@ -6,23 +6,47 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mvvmmovieapp.apidata.cast.CastResponse
 import com.example.mvvmmovieapp.apidata.moviedetails.DetailsResponse
+import com.example.mvvmmovieapp.apidata.requests.FavoriteMovieRequest
 import com.example.mvvmmovieapp.apidata.trending.MovieItem
-import com.example.mvvmmovieapp.apidata.trending.TrendingMoviesResponse
-import com.example.mvvmmovieapp.repositories.Repository
+import com.example.mvvmmovieapp.repositories.MovieApiRepository
+import com.example.mvvmmovieapp.util.DataStoreUtil
 import com.example.mvvmmovieapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import javax.inject.Inject
 
 @HiltViewModel
-class SingleMovieViewModel @Inject constructor(private val repository: Repository) : ViewModel() {
+class SingleMovieViewModel @Inject constructor(
+    private val repository: MovieApiRepository,
+    private val datastore: DataStoreUtil
+) : ViewModel() {
+
+    sealed class SingleMovieEvent {
+        data class AddMovieResult(val data: String): SingleMovieEvent()
+        object AddMovieLoading: SingleMovieEvent()
+    }
+
     var movieDetailsResponse: MutableLiveData<Resource<DetailsResponse>> = MutableLiveData()
     var movieCastResponse: MutableLiveData<Resource<CastResponse>> = MutableLiveData()
 
+    private val _singleMovieEvent = MutableSharedFlow<SingleMovieEvent>()
+    val singleMovieEvent: SharedFlow<SingleMovieEvent> = _singleMovieEvent
 
-    fun saveMovie(movie: MovieItem) = viewModelScope.launch {
-        repository.upsert(movie)
+    fun addMovieToFavorites(movie: MovieItem) = viewModelScope.launch {
+        val favoriteMovieRequest = FavoriteMovieRequest(datastore.getUsername(), movie)
+        _singleMovieEvent.emit(SingleMovieEvent.AddMovieLoading)
+
+        when(val response = repository.addMovieToFavorites(favoriteMovieRequest)) {
+            is Resource.Success -> {
+                _singleMovieEvent.emit(SingleMovieEvent.AddMovieResult(response.data ?: "Movie saved successfully"))
+            }
+            is Resource.Error -> {
+                _singleMovieEvent.emit(SingleMovieEvent.AddMovieResult(response.message ?: "Unknown error occurred"))
+            }
+        }
     }
 
     fun getMovieCredits(movieId: Int) = viewModelScope.launch {

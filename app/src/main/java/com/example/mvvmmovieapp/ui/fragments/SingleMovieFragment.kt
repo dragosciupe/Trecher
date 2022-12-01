@@ -8,6 +8,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,9 +21,14 @@ import com.example.mvvmmovieapp.ui.adapters.CastAdapter
 import com.example.mvvmmovieapp.ui.adapters.GenreAdapter
 import com.example.mvvmmovieapp.util.Constants.MOVIE_IMAGE_URL
 import com.example.mvvmmovieapp.util.Resource
+import com.example.mvvmmovieapp.viewmodels.SavedMoviesViewModel
 import com.example.mvvmmovieapp.viewmodels.SingleMovieViewModel
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_single_movie.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SingleMovieFragment: Fragment() {
@@ -49,6 +57,7 @@ class SingleMovieFragment: Fragment() {
 
         viewModel.getMovieDetails(movie.id)
         viewModel.getMovieCredits(movie.id)
+        subscribeToObservers()
 
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = movie.title
@@ -73,13 +82,38 @@ class SingleMovieFragment: Fragment() {
             movie_rating_average.text = getString(R.string.vote_average).format(movie.vote_average)
             movie_overview_text.text = movie.overview
             movie_add_to_watchlist.setOnClickListener {
-                viewModel.saveMovie(movie)
-                Toast.makeText(requireContext(), "Added to watchlist", Toast.LENGTH_SHORT).show()
+                viewModel.addMovieToFavorites(movie)
             }
         }
 
-        viewModel.movieCastResponse.observe(viewLifecycleOwner, { response ->
-            when(response) {
+
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
+
+    private fun subscribeToObservers() {
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.singleMovieEvent.collect { singleMoviesEvent ->
+                    when(singleMoviesEvent) {
+                        is SingleMovieViewModel.SingleMovieEvent.AddMovieLoading -> {
+                            showProgressBar()
+                        }
+                        is SingleMovieViewModel.SingleMovieEvent.AddMovieResult -> {
+                            showSnackBar(singleMoviesEvent.data)
+                            hideProgressBar()
+                        }
+                    }
+                }
+            }
+        }
+
+        viewModel.movieCastResponse.observe(viewLifecycleOwner) { response ->
+            when (response) {
                 is Resource.Success -> {
                     hideProgressBar()
                     response.data?.let { castResponse ->
@@ -93,10 +127,10 @@ class SingleMovieFragment: Fragment() {
                     hideProgressBar()
                 }
             }
-        })
+        }
 
-        viewModel.movieDetailsResponse.observe(viewLifecycleOwner, { response ->
-            when(response) {
+        viewModel.movieDetailsResponse.observe(viewLifecycleOwner) { response ->
+            when (response) {
                 is Resource.Success -> {
                     response.data?.let { detailsResponse ->
                         binding.movieRuntime.text = getString(R.string.movie_runtime)
@@ -108,12 +142,11 @@ class SingleMovieFragment: Fragment() {
                     }
                 }
             }
-        })
+        }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
+    private fun showSnackBar(message: String) {
+        Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun setupRecyclerView() {

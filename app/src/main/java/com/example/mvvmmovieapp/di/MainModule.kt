@@ -3,6 +3,7 @@ package com.example.mvvmmovieapp.di
 import android.content.Context
 import androidx.room.Room
 import com.example.mvvmmovieapp.database.MovieDatabase
+import com.example.mvvmmovieapp.util.DataStoreUtil
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,7 +17,16 @@ object MainModule {
 
     @Provides
     @Singleton
-    fun provideMovieDatabase(@ApplicationContext context: Context) =
+    fun provideContext(@ApplicationContext context: Context) = context
+
+    @Provides
+    @Singleton
+    fun provideDataStoreUtil(context: Context) =
+        DataStoreUtil(context)
+
+    @Provides
+    @Singleton
+    fun provideMovieDatabase(context: Context) =
         Room.databaseBuilder(
             context.applicationContext,
             MovieDatabase::class.java,

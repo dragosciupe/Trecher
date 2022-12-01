@@ -45,8 +45,8 @@ class TrendingMoviesFragment: Fragment() {
             findNavController().navigate(R.id.action_trendingMoviesFragment_to_singleMovieFragment, bundle)
         }
 
-        viewModel.trendingMoviesResponse.observe(viewLifecycleOwner, { response ->
-            when(response) {
+        viewModel.trendingMoviesResponse.observe(viewLifecycleOwner) { response ->
+            when (response) {
                 is Resource.Success -> {
                     hideProgressBar()
                     response.data?.let { movieResponse ->
@@ -60,7 +60,7 @@ class TrendingMoviesFragment: Fragment() {
                     hideProgressBar()
                 }
             }
-        })
+        }
 
     }
 
