@@ -74,8 +74,8 @@ class SearchMoviesFragment: Fragment() {
             }
         })
 
-        viewModel.movieSearchResponse.observe(viewLifecycleOwner, { response ->
-            when(response) {
+        viewModel.movieSearchResponse.observe(viewLifecycleOwner) { response ->
+            when (response) {
                 is Resource.Success -> {
                     hideProgressBar()
                     response.data?.let { searchResponse ->
@@ -89,7 +89,7 @@ class SearchMoviesFragment: Fragment() {
                     hideProgressBar()
                 }
             }
-        })
+        }
 
     }
 

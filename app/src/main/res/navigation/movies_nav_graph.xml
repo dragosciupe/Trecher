@@ -36,4 +36,8 @@
             android:name="movie"
             app:argType="com.example.mvvmmovieapp.apidata.trending.MovieItem" />
     </fragment>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.mvvmmovieapp.ui.fragments.ProfileFragment"
+        android:label="Profile" />
 </navigation>

@@ -1,8 +1,16 @@
 <resources>
-    <string name="app_name">Mvvm Movie App</string>
+    <string name="app_name">Trecher</string>
     <string name="release_date">Release date: %s</string>
     <string name="original_language">Original language: %s</string>
     <string name="primary_cast">Cast: %s, %s, %s</string>
     <string name="vote_average">%.1f / 10</string>
     <string name="movie_runtime">%dh %dm</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="enter_your_username">Enter your username</string>
+    <string name="enter_your_password">Enter your password</string>
+    <string name="login">Login</string>
+    <string name="create_an_account">Create an account</string>
+    <string name="confirm_password">Confirm your password</string>
+    <string name="create_account">Create an account</string>
+    <string name="logout">Logout</string>
 </resources>

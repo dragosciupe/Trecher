@@ -26,6 +26,14 @@ class MovieApiRepository @Inject constructor() {
         return handleBasicApiResponse { BackendApiRetrofitInstance.api.deleteMovieFromFavorites(favoriteMovieRequest)}
     }
 
+    suspend fun loginAccount(accountRequest: AccountRequest) : Resource<String> {
+        return handleBasicApiResponse { BackendApiRetrofitInstance.api.loginAccount(accountRequest) }
+    }
+
+    suspend fun registerAccount(accountRequest: AccountRequest) : Resource<String> {
+        return handleBasicApiResponse { BackendApiRetrofitInstance.api.registerAccount(accountRequest) }
+    }
+
     suspend fun getTrendingMovies() = MovieApiRetrofitInstance.api.getTrendingMovies()
 
     suspend fun getMovieCredits(movieId: Int) = MovieApiRetrofitInstance.api.getMovieCredits(movieId)

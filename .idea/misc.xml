@@ -24,7 +24,18 @@
         <entry key="..\:/Users/Curva/AndroidStudioProjects/MvvmMovieApp/app/src/main/res/layout/movie_item_view.xml" value="0.264" />
         <entry key="..\:/Users/Curva/AndroidStudioProjects/MvvmMovieApp/app/src/main/res/layout/saved_movie_item_view.xml" value="0.152" />
         <entry key="..\:/Users/Curva/AndroidStudioProjects/MvvmMovieApp/app/src/main/res/menu/bottom_nav_menu.xml" value="0.23645833333333333" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/drawable/credentials_background.xml" value="0.1235" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/drawable/ic_saved_movies.xml" value="0.1235" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/drawable/watchlist_button.xml" value="0.1235" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/layout/activity_login.xml" value="0.234375" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/layout/activity_main.xml" value="0.234375" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/layout/fragment_login.xml" value="0.234375" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/layout/fragment_profile.xml" value="0.26126126126126126" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/layout/fragment_register.xml" value="0.234375" />
         <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/layout/fragment_saved_movies.xml" value="0.234375" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/layout/fragment_single_movie.xml" value="0.234375" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/layout/profile_fragment.xml" value="0.234375" />
+        <entry key="..\:/git/Trecher-proiect-individual/app/src/main/res/menu/bottom_nav_menu.xml" value="0.234375" />
       </map>
     </option>
   </component>
