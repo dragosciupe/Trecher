@@ -6,12 +6,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mvvmmovieapp.apidata.cast.CastResponse
 import com.example.mvvmmovieapp.apidata.moviedetails.DetailsResponse
+import com.example.mvvmmovieapp.apidata.reponses.ReviewResponse
 import com.example.mvvmmovieapp.apidata.requests.FavoriteMovieRequest
+import com.example.mvvmmovieapp.apidata.requests.ReviewRequest
 import com.example.mvvmmovieapp.apidata.trending.MovieItem
 import com.example.mvvmmovieapp.repositories.MovieApiRepository
 import com.example.mvvmmovieapp.util.DataStoreUtil
 import com.example.mvvmmovieapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
@@ -24,9 +27,20 @@ class SingleMovieViewModel @Inject constructor(
     private val datastore: DataStoreUtil
 ) : ViewModel() {
 
+    public lateinit var loggedInUsername: String
+
+    init {
+        viewModelScope.launch {
+            loggedInUsername = datastore.getUsername()
+        }
+    }
     sealed class SingleMovieEvent {
         data class AddMovieResult(val data: String): SingleMovieEvent()
-        object AddMovieLoading: SingleMovieEvent()
+        data class AddReviewResult(val data: String): SingleMovieEvent()
+        data class AddReviewSuccess(val review: ReviewResponse): SingleMovieEvent()
+        data class GetReviewsSuccess(val reviews: List<ReviewResponse>): SingleMovieEvent()
+        data class GetReviewsError(val message: String): SingleMovieEvent()
+        object Loading: SingleMovieEvent()
     }
 
     var movieDetailsResponse: MutableLiveData<Resource<DetailsResponse>> = MutableLiveData()
@@ -35,9 +49,12 @@ class SingleMovieViewModel @Inject constructor(
     private val _singleMovieEvent = MutableSharedFlow<SingleMovieEvent>()
     val singleMovieEvent: SharedFlow<SingleMovieEvent> = _singleMovieEvent
 
+    private val _reviewsFlow = MutableSharedFlow<SingleMovieEvent>()
+    val reviewsFlow: SharedFlow<SingleMovieEvent> = _reviewsFlow
+
     fun addMovieToFavorites(movie: MovieItem) = viewModelScope.launch {
-        val favoriteMovieRequest = FavoriteMovieRequest(datastore.getUsername(), movie)
-        _singleMovieEvent.emit(SingleMovieEvent.AddMovieLoading)
+        val favoriteMovieRequest = FavoriteMovieRequest(loggedInUsername, movie)
+        _singleMovieEvent.emit(SingleMovieEvent.Loading)
 
         when(val response = repository.addMovieToFavorites(favoriteMovieRequest)) {
             is Resource.Success -> {
@@ -45,6 +62,60 @@ class SingleMovieViewModel @Inject constructor(
             }
             is Resource.Error -> {
                 _singleMovieEvent.emit(SingleMovieEvent.AddMovieResult(response.message ?: "Unknown error occurred"))
+            }
+        }
+    }
+
+    fun addMovieReview(reviewRatingString: String, reviewText: String, movieId: Int) = viewModelScope.launch {
+        if(reviewRatingString.isEmpty()) {
+            _singleMovieEvent.emit(SingleMovieEvent.AddReviewResult("The rating must be between 1 and 5"))
+            return@launch
+        }
+        val reviewRating = reviewRatingString.toDouble()
+        if(reviewRating < 1 || reviewRating > 5) {
+            _singleMovieEvent.emit(SingleMovieEvent.AddReviewResult("The rating must be between 1 and 5"))
+            return@launch
+        }
+
+        val reviewRequest = ReviewRequest(
+            loggedInUsername,
+            movieId,
+            reviewRating,
+            reviewText
+        )
+
+        when(val response = repository.addMovieReview(reviewRequest)) {
+            is Resource.Success -> {
+                _singleMovieEvent.emit(SingleMovieEvent.AddReviewSuccess(
+                    ReviewResponse(
+                        loggedInUsername,
+                        movieId,
+                        reviewRating,
+                        reviewText,
+                        System.currentTimeMillis()
+                    )
+                ))
+            }
+
+            is Resource.Error -> {
+                _singleMovieEvent.emit(SingleMovieEvent.AddReviewResult(response.message ?: "Unknown error occurred"))
+            }
+        }
+    }
+
+    fun getAllMovieReviews(movieId: Int) = viewModelScope.launch {
+        delay(100L)
+        when(val response = repository.getAllReviews(movieId.toString())) {
+            is Resource.Success -> {
+                _reviewsFlow.emit(SingleMovieEvent.GetReviewsSuccess(response.data?.sortedByDescending {
+                    it.timestamp
+                } ?: emptyList()))
+                val reviewCount = response.data?.size ?: -1
+                Log.d("Reviews", "retrieved in vm $reviewCount ${if(reviewCount == 1) "review" else "reviews"}")
+            }
+
+            is Resource.Error -> {
+                _singleMovieEvent.emit(SingleMovieEvent.GetReviewsError("Unknown error occurred"))
             }
         }
     }

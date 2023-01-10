@@ -1,11 +1,12 @@
 package com.example.mvvmmovieapp.ui.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -19,15 +20,14 @@ import com.example.mvvmmovieapp.R
 import com.example.mvvmmovieapp.databinding.FragmentSingleMovieBinding
 import com.example.mvvmmovieapp.ui.adapters.CastAdapter
 import com.example.mvvmmovieapp.ui.adapters.GenreAdapter
+import com.example.mvvmmovieapp.ui.adapters.ReviewAdapter
 import com.example.mvvmmovieapp.util.Constants.MOVIE_IMAGE_URL
 import com.example.mvvmmovieapp.util.Resource
-import com.example.mvvmmovieapp.viewmodels.SavedMoviesViewModel
 import com.example.mvvmmovieapp.viewmodels.SingleMovieViewModel
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_single_movie.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -37,6 +37,7 @@ class SingleMovieFragment: Fragment() {
     private val args: SingleMovieFragmentArgs by navArgs()
     private lateinit var castAdapter: CastAdapter
     private lateinit var genreAdapter: GenreAdapter
+    private lateinit var reviewAdapter: ReviewAdapter
     private val viewModel: SingleMovieViewModel by viewModels()
 
     override fun onCreateView(
@@ -51,13 +52,14 @@ class SingleMovieFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupRecyclerView()
+        setupRecyclerViews()
 
         val movie = args.movie
 
+        subscribeToObservers()
         viewModel.getMovieDetails(movie.id)
         viewModel.getMovieCredits(movie.id)
-        subscribeToObservers()
+        viewModel.getAllMovieReviews(movie.id)
 
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = movie.title
@@ -84,9 +86,14 @@ class SingleMovieFragment: Fragment() {
             movie_add_to_watchlist.setOnClickListener {
                 viewModel.addMovieToFavorites(movie)
             }
+            btnAddReview.setOnClickListener {
+                viewModel.addMovieReview(
+                    etReviewRating.text.toString(),
+                    etReview.text.toString(),
+                    movie.id
+                )
+            }
         }
-
-
     }
 
     override fun onDestroy() {
@@ -100,12 +107,49 @@ class SingleMovieFragment: Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.singleMovieEvent.collect { singleMoviesEvent ->
                     when(singleMoviesEvent) {
-                        is SingleMovieViewModel.SingleMovieEvent.AddMovieLoading -> {
+                        is SingleMovieViewModel.SingleMovieEvent.Loading -> {
                             showProgressBar()
                         }
                         is SingleMovieViewModel.SingleMovieEvent.AddMovieResult -> {
                             showSnackBar(singleMoviesEvent.data)
                             hideProgressBar()
+                        }
+                        is SingleMovieViewModel.SingleMovieEvent.AddReviewResult -> {
+                            showSnackBar(singleMoviesEvent.data)
+                            hideProgressBar()
+                        }
+                        is SingleMovieViewModel.SingleMovieEvent.AddReviewSuccess -> {
+                            showSnackBar("Review added successfully")
+                            binding.etReviewRating.text.clear()
+                            binding.etReview.text.clear()
+                            hideProgressBar()
+                            val newReviewList = reviewAdapter.differ.currentList.toMutableList().apply {
+                                add(0, singleMoviesEvent.review)
+                            }
+                            reviewAdapter.differ.submitList(newReviewList)
+                            binding.tvNoReviews.isVisible = false
+                        }
+                        is SingleMovieViewModel.SingleMovieEvent.GetReviewsError -> {
+                            showSnackBar(singleMoviesEvent.message)
+                        }
+                    }
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.reviewsFlow.collect { reviewsEvent ->
+                    when(reviewsEvent) {
+                        is SingleMovieViewModel.SingleMovieEvent.GetReviewsSuccess -> {
+                            Log.d("Reviews", "retrieved in fragment")
+                            val reviews = reviewsEvent.reviews
+                            if(reviews.isNotEmpty()) {
+                                binding.tvNoReviews.isVisible = false
+                                reviewAdapter.differ.submitList(reviews)
+                            } else {
+                                binding.tvNoReviews.isVisible = true
+                            }
                         }
                     }
                 }
@@ -149,7 +193,7 @@ class SingleMovieFragment: Fragment() {
         Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show()
     }
 
-    private fun setupRecyclerView() {
+    private fun setupRecyclerViews() {
         castAdapter = CastAdapter()
         binding.rvCastMembers.adapter = castAdapter
         binding.rvCastMembers.layoutManager = LinearLayoutManager(
@@ -163,6 +207,14 @@ class SingleMovieFragment: Fragment() {
         binding.rvGenres.layoutManager = LinearLayoutManager(
             requireContext(),
             RecyclerView.HORIZONTAL,
+            false
+        )
+
+        reviewAdapter = ReviewAdapter(viewModel.loggedInUsername)
+        binding.rvReviews.adapter = reviewAdapter
+        binding.rvReviews.layoutManager = LinearLayoutManager(
+            requireContext(),
+            RecyclerView.VERTICAL,
             false
         )
     }

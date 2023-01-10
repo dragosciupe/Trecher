@@ -4,11 +4,14 @@ import com.example.mvvmmovieapp.api.BackendApi
 import com.example.mvvmmovieapp.api.BackendApiRetrofitInstance
 import com.example.mvvmmovieapp.api.MovieApiRetrofitInstance
 import com.example.mvvmmovieapp.apidata.reponses.BasicApiResponse
+import com.example.mvvmmovieapp.apidata.reponses.ReviewResponse
 import com.example.mvvmmovieapp.apidata.requests.AccountRequest
 import com.example.mvvmmovieapp.apidata.requests.FavoriteMovieRequest
+import com.example.mvvmmovieapp.apidata.requests.ReviewRequest
 import com.example.mvvmmovieapp.apidata.trending.MovieItem
 import com.example.mvvmmovieapp.database.SavedMoviesDao
 import com.example.mvvmmovieapp.util.Resource
+import okhttp3.internal.concurrent.TaskRunner
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -32,6 +35,14 @@ class MovieApiRepository @Inject constructor() {
 
     suspend fun registerAccount(accountRequest: AccountRequest) : Resource<String> {
         return handleBasicApiResponse { BackendApiRetrofitInstance.api.registerAccount(accountRequest) }
+    }
+
+    suspend fun addMovieReview(reviewRequest: ReviewRequest) : Resource<String> {
+        return handleBasicApiResponse { BackendApiRetrofitInstance.api.addMovieReview(reviewRequest) }
+    }
+
+    suspend fun getAllReviews(movieId: String): Resource<List<ReviewResponse>> {
+        return handleGeneralResponse { BackendApiRetrofitInstance.api.getMovieReviews(movieId) }
     }
 
     suspend fun getTrendingMovies() = MovieApiRetrofitInstance.api.getTrendingMovies()

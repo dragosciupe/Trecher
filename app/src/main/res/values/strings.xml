@@ -13,4 +13,9 @@
     <string name="confirm_password">Confirm your password</string>
     <string name="create_account">Create an account</string>
     <string name="logout">Logout</string>
+    <string name="reviews">Reviews</string>
+    <string name="add_review">Add review</string>
+    <string name="write_a_review_for_this_movie">Write a review for this movie...</string>
+    <string name="no_reviews_exist">(No reviews exist)</string>
+    <string name="rating">Rating:</string>
 </resources>
